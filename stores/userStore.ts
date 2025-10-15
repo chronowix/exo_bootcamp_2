@@ -1,22 +1,28 @@
-import { defineStore } from 'pinia';
-import type { User } from '../types/user';
+import { defineStore } from 'pinia'
+import type { User } from '~/types/user'
 
 export const useUserStore = defineStore('user', {
     state: () => ({
-        loggedUser: null as User | null, //todo: stocker ici le user connecté
+        loggedUser: null as User | null,
     }),
 
     getters: {
-    //todo: ajouter getters (isConnected, nom complet...)
+        isConnected: (state): boolean => {
+            return state.loggedUser !== null
+        },
 
+        fullName: (state): string => {
+            return state.loggedUser?.name || ''
+        },
     },
 
     actions: {
-        setLoggedUser: (user: User) => {
-            //TODO: stocker le user connecté dans le state
+        setLoggedUser(user: { id: string; name: string; email: string; password: string }) {
+            this.loggedUser = user
         },
-        clearLoggedUser: () => {
-            //todo: réinit le loggedUser à null
+
+        clearLoggedUser() {
+            this.loggedUser = null
         },
     },
 })

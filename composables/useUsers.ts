@@ -1,41 +1,58 @@
-import type { User } from '../types/user';
-import { ref } from 'vue';
+import { ref } from 'vue'
+import type { User } from '~/types/user'
+import { mockUsers } from '~/data/mockUsers'
+
+const STORAGE_KEY = 'users'
 
 export const useUsers = () => {
-    const users = ref<User[]>([]); //todo: stocker les users du localStorage
+    const users = ref<User[]>([])
 
+    //charge les users depuis le localStorage
     const loadUsers = (): void => {
-        //charge la liste des users depuis le localStorage
-        const storedUsers = localStorage.getItem('users'); //getItem va chercher l'élément
-        if (storedUsers) {
-            users.value = JSON.parse(storedUsers);
-        } else {
-            users.value = [];
+        if (process.client) { // ✅ only run in browser
+            const storedUsers = localStorage.getItem(STORAGE_KEY)
+            if (storedUsers) {
+                users.value = JSON.parse(storedUsers)
+            } else {
+                users.value = mockUsers
+                saveUsers()
+            }
         }
     }
 
-    const getUserById = (id: string): User | null => {
-        //recherche un user par son ID
-        const user = users.value.find((user) => user.id === id); //pour récup un élément spécifique, utiliser .value.find
-        return user || null;
-    }
-
+    //sauvegarde les users dans le localStorage
     const saveUsers = (): void => {
-        //sauvegarde la liste des users dans le localStorage
-        localStorage.setItem('users', JSON.stringify(users.value));
+        if (process.client) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(users.value))
+        }
     }
 
+    //recherche un user par son ID
+    const getUserById = (id: string): User | null => {
+        return users.value.find(user => user.id === id) || null
+    }
+
+    //ajoute nouveau user
     const addUser = (user: User): void => {
-        //todo: ajouter le nouveau user dans le localStorage
-        users.value.push(user);
-        saveUsers();
+        users.value.push(user)
+        saveUsers()
+    }
+
+    //maj d'un user existant dans le localStorage
+    const updateUser = (updatedUser: User): void => {
+        const index = users.value.findIndex(user => user.id === updatedUser.id)
+        if (index !== -1) {
+            users.value[index] = updatedUser
+            saveUsers()
+        }
     }
 
     return {
         users,
-        getUserById,
         loadUsers,
         saveUsers,
+        getUserById,
         addUser,
+        updateUser,
     }
 }
